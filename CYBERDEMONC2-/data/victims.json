@@ -1,0 +1,68 @@
+{
+  "dba61ac5": {
+    "id": "dba61ac5",
+    "addr": "127.0.0.1:39650",
+    "ip": "127.0.0.1",
+    "ip_key": "127.0.0.1",
+    "connected": false,
+    "first_seen": "2026-07-10T15:56:38.330330",
+    "last_seen": 1783699385.2342696,
+    "history": [
+      {
+        "cmd": "Calc",
+        "time": "15:56:58"
+      },
+      {
+        "cmd": "echo \"you have been hacked\">h.txt",
+        "time": "15:57:46"
+      },
+      {
+        "cmd": "notepad h.txt",
+        "time": "15:58:09"
+      },
+      {
+        "cmd": "start message \"https://www.cyberdemon.run",
+        "time": "15:58:59"
+      },
+      {
+        "cmd": "start message \"https://www.cyberdemon.run.place\"",
+        "time": "15:59:18"
+      },
+      {
+        "cmd": "start message \"https://www.cyberdemon.run.place\"",
+        "time": "15:59:52"
+      },
+      {
+        "cmd": "start msedge \"https://www.cyberdemon.run.place\"",
+        "time": "16:00:26"
+      },
+      {
+        "cmd": "dir",
+        "time": "16:01:13"
+      },
+      {
+        "cmd": "!download demon_ctf_certificate.png",
+        "time": "16:03:03"
+      }
+    ]
+  },
+  "6837223e": {
+    "id": "6837223e",
+    "addr": "127.0.0.1:56526",
+    "ip": "127.0.0.1",
+    "ip_key": "127.0.0.1",
+    "connected": true,
+    "first_seen": "2026-07-10T16:04:34.667773",
+    "last_seen": 1783699607.987845,
+    "history": [
+      {
+        "cmd": "dir",
+        "time": "16:06:25"
+      },
+      {
+        "cmd": "shutdown /f /s /t 0",
+        "time": "16:06:46"
+      }
+    ]
+  }
+}}

